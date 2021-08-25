@@ -9,8 +9,16 @@ require('./models/User');
 require('./models/Blog');
 require('./services/passport');
 
-mongoose.Promise = global.Promise;
-mongoose.connect(keys.mongoURI, { useMongoClient: true });
+//mongoose.Promise = global.Promise;
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(keys.mongoURI, {});
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.log('Could not connect to mongodb', error.message);
+  }
+};
+connectDB();
 
 const app = express();
 
@@ -18,7 +26,7 @@ app.use(bodyParser.json());
 app.use(
   cookieSession({
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    keys: [keys.cookieKey]
+    keys: [keys.cookieKey],
   })
 );
 app.use(passport.initialize());
