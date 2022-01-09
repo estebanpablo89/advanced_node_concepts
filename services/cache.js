@@ -8,20 +8,25 @@ client.get = util.promisify(client.get)
 const exec = mongoose.Query.prototype.exec
 
 mongoose.Query.prototype.exec = async function () {
-    const key = JSON.stringify({
-        ...this.getQuery(), 
-        collection: this.mongooseCollection.name
-    })
+  const key = JSON.stringify({
+    ...this.getQuery(),
+    collection: this.mongooseCollection.name
+  })
 
-    // See if we have a vlue for 'key' in redis
-    const cacheValue = await client.get(key)
+  // See if we have a vlue for 'key' in redis
+  const cacheValue = await client.get(key)
 
-    // if we do, return that
-    if (cacheValue) {
-        console.log(cacheValue)
-    }
+  // if we do, return that
+  if (cacheValue) {
+    console.log(cacheValue)
 
-    // otherwise, issue the query and store the result in redis
-    const result = await exec.apply(this, arguments)
-    console.log(result)
+    return JSON.parse(cacheValue)
+  }
+
+  // otherwise, issue the query and store the result in redis
+  const result = await exec.apply(this, arguments)
+
+  client.set(key, JSON.stringify(result))
+
+  return result
 }
